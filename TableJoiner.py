@@ -64,6 +64,14 @@ class TableJoiner:
                 letter_column = letter + '.' + compare_col
         return letter_column
 
+    def query_db(self, select_clause, time_bound_clause):
+        db_query = "SELECT {} {}".format(select_clause, time_bound_clause)
+
+        with connect() as connection:
+            with connection.cursor() as cursor:
+                query_result = cursor.execute(db_query)
+        return query_result
+
     def inner_join_builder(self, table_list, table_join_map, table_keys_dict, table_lett_column):
         count = 1
         nums = []
@@ -149,7 +157,7 @@ class TableJoiner:
             if temp_table == compare_table:
                 return table
 
-    def make_table_list(self, table_column_map):
+    def make_table_dict(self, table_column_map):
         my_alphas = self.make_alphas()
         table_list = table_column_map.keys()
         table_list = sorted(table_list)
@@ -166,17 +174,20 @@ class TableJoiner:
                 if tab == table:
                     time_table = tab[1] + '.' + col
                     break
-        time_boundary_clause = "{}::timestamp WITH TIMEZONE AT TIMEZONE 'GMT' BETWEEN '{}' AND '{}'".format(time_table, query_start, query_stop)
+        time_boundary_clause = "{}::timestamp with timezone AT TIMEZONE 'GMT' BETWEEN '{}' AND '{}'".format(time_table, query_start, query_stop)
         return time_boundary_clause
 
 
     startTime = '2018/04/25 00:01:00'
     stopTime = '2018/04/25 00:11:00'
     myAlphas = make_alphas()
-    tableNames = make_table_list(TABLE_COLUMN_MAP)
+    tableNames = make_table_dict(TABLE_COLUMN_MAP)
     tableColumnMap = copy.deepcopy(TABLE_COLUMN_MAP)
     tableLetterColumn = table_column_letter_mapper(tableNames, TABLE_JOIN_MAP)
+    selectClause = column_header_builder(tableNames, tableColumnMap, DATE_CONVERSION_LIST):
     timeBoundClause = time_boundary_formatter(TABLE_COLUMN_MAP, DATE_CONVERSION_LIST, startTime, stopTime)
+    joinClause = inner_join_builder(, TABLE_JOIN_MAP, tableNames, tableLetterColumn, )
+    dbQueryResult = query_db(selectClause, timeBoundClause)
 
 if 'name' == '__main__':
     main()
